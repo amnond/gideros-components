@@ -1,5 +1,5 @@
 # gideros-components
-Various components to assist in Gideros apps
+Various components to assist in developing Gideros apps
 
 Gideros (http://giderosmobile.com/) is an amazing project. Hopefully this will contribute a bit more to it.
 
@@ -36,7 +36,12 @@ where:
 
 ## Button grid
 ButtonGrid makes use of RButton.
-To keep things simple, let's just let the code do the talking:
+
+Example:
+
+![screen shot](https://nocurve.com/content/video.gif "Example")
+
+To keep things simple, let's just let the code which does the above do the talking:
 
 ```lua
 require "gidcomps"

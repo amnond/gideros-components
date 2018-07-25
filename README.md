@@ -24,14 +24,14 @@ where:
 * w - width of the button
 * h - height of the button
 * params is an optional table that can contain the following attributes:
-+ roundness - a number between 0 and 1 that defines the roundness of the corners. where 0 means no rounded corners (i.e the button will be a simple rectangle) and 1 means that the vertical edges of the button will be half a circle (with a radius of half the button height)
-+ line_width - the width of the button's border
-+ line_color - the color of the button's border
-+ fill_color - the background color of the button
-+ text_color - the color of the button's text
-+ focus_line_color - the color of the button's border when button is clicked
-+ focus_fill_color - the background color of the button when button is clicked
-+ focus_text_color - the color of the button's text when button is clicked
+  + roundness - a number between 0 and 1 that defines the roundness of the corners. where 0 means no rounded corners (i.e the button will be a simple rectangle) and 1 means that the vertical edges of the button will be half a circle (with a radius of half the button height)
+  + line_width - the width of the button's border
+  + line_color - the color of the button's border
+  + fill_color - the background color of the button
+  + text_color - the color of the button's text
+  + focus_line_color - the color of the button's border when button is clicked
+  + focus_fill_color - the background color of the button when button is clicked
+  + focus_text_color - the color of the button's text when button is clicked
 
 
 ## Button grid

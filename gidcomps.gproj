@@ -1,0 +1,10 @@
+<project>
+ <properties ios_bundle="com.yourdomain." logicalHeight="480" retinaDisplay="0" version="1.0" winrt_package="com.yourdomain.yourapp" splash_h_image="" html5_pack="0" scaleMode="0" html5_fbload="100" windowWidth="0" encryptAssets="0" fps="60" splash_v_image="" osx_category="5" html5_mem="256" html5_fbinstant="0" splashScaleMode="0" exportMode="0" iosDevice="0" win_domain="giderosmobile.com" build_number="1" android_template="0" touchToMouse="1" osx_org="GiderosMobile" logicalWidth="320" winrt_org="GiderosMobile" app_name="" autorotation="0" osx_signingId="" mouseTouchOrder="0" osx_domain="giderosmobile.com" version_code="1" architecture="0" backgroundColor="#ffffff" encryptCode="0" html5_host="" disableSplash="0" orientation="0" tv_icon="" packageName="com.yourdomain.yourapp" mouseToTouch="1" osx_installerId="" windowHeight="0" win_org="GiderosMobile" app_icon="" osx_bundle="com.yourdomain." vsync="0">
+  <imageScales/>
+  <plugins/>
+  <exports/>
+ </properties>
+ <file source="gidcomps.lua"/>
+ <file source="main.lua"/>
+ <file source="Vera.ttf"/>
+</project>

@@ -8,6 +8,7 @@ local appheight = application:getDeviceHeight()
 --     3 rows, 1 column
 --     cell padding of 10%
 local grid = ButtonGrid(appwidth, appheight, 3, 1, 0.10)
+grid.setBtnParams({font_file = 'Vera.ttf'})
 
 -- Callback function when one of the buttons in the grid is selected
 function onSelected(choice)

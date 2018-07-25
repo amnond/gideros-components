@@ -13,7 +13,7 @@ function RButton(text, ax, ay, w, h, params)
     local focus_fillc = '2222aa'
     local focus_linec = 'aaffaa'
     local focus_textc = 'aaffaa'
-
+    local font_file = nil
     local priv = {}
 
    	priv.str2col = function(str)
@@ -41,7 +41,8 @@ function RButton(text, ax, ay, w, h, params)
         textc = textc or params.text_color
         focus_fillc = focus_fillc or params.focus_fill_color
         focus_linec = focus_linec or params.focus_line_color
-        focus_textc = focus_textc or params.focus_text_color        
+        focus_textc = focus_textc or params.focus_text_color
+        font_file = params.font_file
     end
 
     local fill_color = priv.str2col(fillc)
@@ -116,7 +117,7 @@ function RButton(text, ax, ay, w, h, params)
     
     while font_size < 60 do
         --print(font_size)
-        local font = TTFont.new("Vera.ttf", font_size)
+        local font = TTFont.new(font_file, font_size)
         local tf = TextField.new(font, text)
         local lineh = tf:getHeight()
         local linew = tf:getWidth()
@@ -140,7 +141,7 @@ function RButton(text, ax, ay, w, h, params)
             myShape:removeChild(textfield)
         end
     
-        local font = TTFont.new("Vera.ttf", font_size)
+        local font = TTFont.new(font_file, font_size)
         textfield = TextField.new(font, text)
         myShape:addChild(textfield)
         textfield:setTextColor(whichcol)    
@@ -161,7 +162,7 @@ function RButton(text, ax, ay, w, h, params)
     end
     
     myShape.setFontSize = function(size)
-        local font = TTFont.new("Vera.ttf", size)
+        local font = TTFont.new(font_file, size)
         local tf = TextField.new(font, text)
         local lineh = tf:getHeight()
         local linew = tf:getWidth()
@@ -234,6 +235,7 @@ function ButtonGrid(width, height, rows, cols, padding)
     local buttons = {}
     
 	local handler = nil
+    local font_file = nil
 	
     priv.makegrid = function(rows, cols)
         for i = 1, rows do
@@ -254,6 +256,10 @@ function ButtonGrid(width, height, rows, cols, padding)
 		end
 		handler(context)
 	end
+
+    public.setBtnParams = function( params )
+        btn_params = params
+    end
 	
     public.setHandler = function( func )
 	    if type(func) ~= "function" then
@@ -276,7 +282,7 @@ function ButtonGrid(width, height, rows, cols, padding)
         local x = (col-1) * dx + dx/2
         local y = (row-1) * dy + dy/2
 
-        local btn = RButton(text, x, y, dx-padding*dx, dy-padding*dy)
+        local btn = RButton(text, x, y, dx-padding*dx, dy-padding*dy, btn_params)
 		btn.setHandler(priv.btnEvtHandler, {text=text, row=row, col=col})
         table.insert(buttons, btn)      
     end

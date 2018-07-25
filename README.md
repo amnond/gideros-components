@@ -18,12 +18,12 @@ btn = RButton(text, cx, cy, w, h, params)
 stage:addChild(btn)
 ```
 where:
-text - a string containing the text of the button
-cx - the horizontal center of the button
-cy - the vertical center of the button
-w - width of the button
-h - height of the button
-params is an optional table that can contain the following attributes:
+* text - a string containing the text of the button
+* cx - the horizontal center of the button
+* cy - the vertical center of the button
+* w - width of the button
+* h - height of the button
+* params is an optional table that can contain the following attributes:
 + roundness - a number between 0 and 1 that defines the roundness of the corners. where 0 means no rounded corners (i.e the button will be a simple rectangle) and 1 means that the vertical edges of the button will be half a circle (with a radius of half the button height)
 + line_width - the width of the button's border
 + line_color - the color of the button's border

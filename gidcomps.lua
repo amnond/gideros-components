@@ -4,6 +4,24 @@ Copyright 2018 Amnon David
 ]]
 
 -----------------------------------------------------------------------------
+function table_dumps(tbl)
+    if not tbl then
+        return 'nil'
+    end
+    local str = ''
+    for k, v in pairs(tbl) do
+        str = str .. k .. ": "
+        if type(v) == "table" then
+            str = str .. dumpst(v)
+        else
+            str = str ..(v)
+        end
+        str = str .. ' '
+    end
+    return str
+end
+
+-----------------------------------------------------------------------------
 function RButton(text, ax, ay, w, h, params)
     local f = 0.42
     local linew = 2
@@ -16,23 +34,23 @@ function RButton(text, ax, ay, w, h, params)
     local font_file = nil
     local priv = {}
 
-   	priv.str2col = function(str)
-		local def = '000000'
-		if not str then
-			str = def
-		end
-		
-		if #str ~= 6 then
-			str = def
-		end
-		
-		local res = tonumber(str, 16)
-		if not res then
-			res = tonumber(def, 16)
-		end
-		return res
-	end
-	
+       priv.str2col = function(str)
+        local def = '000000'
+        if not str then
+            str = def
+        end
+        
+        if #str ~= 6 then
+            str = def
+        end
+        
+        local res = tonumber(str, 16)
+        if not res then
+            res = tonumber(def, 16)
+        end
+        return res
+    end
+    
     if params then
         f = f or params.roundness
         linew = linew or params.line_width
@@ -54,10 +72,10 @@ function RButton(text, ax, ay, w, h, params)
 
     local focus = false 
     local textfield = nil
-	
-	local handler = nil
-	local context = nil
-	
+    
+    local handler = nil
+    local context = nil
+    
     local myShape = Shape.new()
 
     priv.drawButton = function(fc, lc)
@@ -114,9 +132,8 @@ function RButton(text, ax, ay, w, h, params)
     local padx = 0
     local pady = 0
     local save_lineh = 0
-    
+
     while font_size < 60 do
-        --print(font_size)
         local font = TTFont.new(font_file, font_size)
         local tf = TextField.new(font, text)
         local lineh = tf:getHeight()
@@ -129,6 +146,11 @@ function RButton(text, ax, ay, w, h, params)
         save_lineh = lineh
         font_size = font_size + 1       
     end
+    -- TTFont.new exhausts open file handles before garbage is collected resulting in 
+    -- errors of type: "Vera.ttf: No such file or directory.", a message which has little
+    -- relation to the actual problem...
+    collectgarbage("collect") 
+    
     font_size = font_size - 1
     
     myShape.drawText = function()
@@ -177,13 +199,13 @@ function RButton(text, ax, ay, w, h, params)
     end
 
     myShape.setHandler = function( func, ctx )
-	    if type(func) ~= "function" then
-		    return
-		end
-		handler = func
-		context = ctx
-	end
-	
+        if type(func) ~= "function" then
+            return
+        end
+        handler = func
+        context = ctx
+    end
+    
     function myShape:onMouseDown(event)
         if myShape:hitTestPoint(event.x, event.y) then
             focus = true
@@ -201,8 +223,8 @@ function RButton(text, ax, ay, w, h, params)
             focus = false
             myShape.updateFocusColors()
             if handler then
-			    handler(context)
-			end
+                handler(context)
+            end
             event:stopPropagation()
         end
     end
@@ -234,9 +256,9 @@ function ButtonGrid(width, height, rows, cols, padding)
     local grid = {}
     local buttons = {}
     
-	local handler = nil
+    local handler = nil
     local font_file = nil
-	
+    
     priv.makegrid = function(rows, cols)
         for i = 1, rows do
             grid[i] = {}
@@ -249,25 +271,25 @@ function ButtonGrid(width, height, rows, cols, padding)
     
     priv.makegrid(rows, cols)
  
-	priv.btnEvtHandler = function(context)
-		if not handler then
-		    print("no handler set for button event")
-			return
-		end
-		handler(context)
-	end
+    priv.btnEvtHandler = function(context)
+        if not handler then
+            print("no handler set for button event")
+            return
+        end
+        handler(context)
+    end
 
     public.setBtnParams = function( params )
         btn_params = params
     end
-	
+    
     public.setHandler = function( func )
-	    if type(func) ~= "function" then
-		    return
-		end
-		handler = func
-	end
-	
+        if type(func) ~= "function" then
+            return
+        end
+        handler = func
+    end
+    
     public.addButton = function(text, row, col)
         if row > #grid then
             return false
@@ -283,7 +305,7 @@ function ButtonGrid(width, height, rows, cols, padding)
         local y = (row-1) * dy + dy/2
 
         local btn = RButton(text, x, y, dx-padding*dx, dy-padding*dy, btn_params)
-		btn.setHandler(priv.btnEvtHandler, {text=text, row=row, col=col})
+        btn.setHandler(priv.btnEvtHandler, {text=text, row=row, col=col})
         table.insert(buttons, btn)      
     end
 
@@ -311,3 +333,65 @@ function ButtonGrid(width, height, rows, cols, padding)
 
     return public   
 end
+
+-----------------------------------------------------------------------------
+local g_view_manager = nil
+
+function ViewManager()
+    if g_view_manager then
+        return g_view_manager
+    end
+    
+    local private = {}
+    local public = {}       -- interface seen by creators of ViewManager
+    local friend_view = {}  -- methods of ViewManager only seen within View 
+    local views = {}
+    
+    friend_view.leave = function(from, whereTo, params)
+        vfrom = views[from]
+        vto   = views[whereTo]
+        
+        local onLeave = vfrom.view.onLeave
+        if type(onLeave) == "function" then
+            onLeave()
+        end
+        
+        stage:removeChild(vfrom.vstage)
+        stage:addChild(vto.vstage)
+        
+        local onStart = vto.view.onStart
+        if type(onStart) == "function" then
+            onStart(vto.vstage, params)
+        end
+    end
+    
+    private.View = function(name)
+        local i_view = {}
+        
+        i_view.leave = function(whereTo, params)
+            friend_view.leave(name, whereTo, params)
+        end
+        
+        return i_view
+    end
+
+    public.addView = function(viewname)
+        local view = private.View(viewname, friend_view)
+        views[viewname] = {view = view, vstage = Sprite.new()}
+        return view
+    end
+    
+    public.start = function(viewname)
+        local viewinfo = views[viewname]
+        if viewinfo == nil then
+            return
+        end
+        stage:addChild(viewinfo.vstage)
+        viewinfo.view.onStart(viewinfo.vstage, nil)
+    end
+
+    g_view_manager = public        
+    return public
+end
+
+-----------------------------------------------------------------------------

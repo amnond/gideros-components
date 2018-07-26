@@ -344,16 +344,17 @@ function ViewManager()
     
     local private = {}
     local public = {}       -- interface seen by creators of ViewManager
-    local friend_view = {}  -- methods of ViewManager only seen within View 
     local views = {}
     
-    friend_view.leave = function(from, whereTo, params)
+    private.leave = function(from, whereTo, params)
         vfrom = views[from]
         vto   = views[whereTo]
         
         local onLeave = vfrom.view.onLeave
         if type(onLeave) == "function" then
             onLeave()
+        else
+            print( "view "..from.." did not define onLeave function")
         end
         
         stage:removeChild(vfrom.vstage)
@@ -362,6 +363,8 @@ function ViewManager()
         local onStart = vto.view.onStart
         if type(onStart) == "function" then
             onStart(vto.vstage, params)
+        else
+            print( "Error: view "..whereTo.." did not define onStart function")
         end
     end
     
@@ -369,14 +372,14 @@ function ViewManager()
         local i_view = {}
         
         i_view.leave = function(whereTo, params)
-            friend_view.leave(name, whereTo, params)
+            private.leave(name, whereTo, params)
         end
         
         return i_view
     end
 
     public.addView = function(viewname)
-        local view = private.View(viewname, friend_view)
+        local view = private.View(viewname, private)
         views[viewname] = {view = view, vstage = Sprite.new()}
         return view
     end
@@ -384,6 +387,7 @@ function ViewManager()
     public.start = function(viewname)
         local viewinfo = views[viewname]
         if viewinfo == nil then
+            print("Error: No view associated with "..viewname)
             return
         end
         stage:addChild(viewinfo.vstage)

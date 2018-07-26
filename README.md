@@ -74,3 +74,46 @@ grid.setHandler( onSelected )
 grid.render(stage)
 ```
 
+## ViewManager
+
+ViewManager provides a simple way to manage the logic of the different screens that make up your application.
+
+If the internal logic of a certain screen is defined in a specific file, then at the begining of that file get an instance of the ViewManager and request from it an instance of a View associated with a name you provide, as follows:
+
+```lua
+require "gidcomps"
+
+local view_mngr = ViewManager()
+local view1 = view_mngr.addView("view1")
+```
+
+### Override view callbacks
+At this point, you should override two callback methods of View:
+
+```lua
+function view1.onStart(vstage, params)
+```
+* vstage - the stage on which to add this views children
+* params - parameters that have been passed by the previous view before transfering control to this view
+
+```lua
+function view1.onLeave()
+```
+Implement any required clean-ups before this view is removed from the stage
+
+### Transfer control to different view
+To transfer control to a different view, invoke the current view's leave method, for example:
+
+```lua
+view1.leave("view2", {msg="hello from view1"})
+```
+
+### Start the show
+To start the process, call the start method with the name of the first view that should be loaded, so for example from main.lua :
+
+```lua
+require "gidcomps"
+
+local view_mngr = ViewManager()
+view_mngr.start("view1")
+```

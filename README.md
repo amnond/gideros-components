@@ -8,8 +8,11 @@ This project is aimed to create components that make creating Gideros applicatio
 For getting quickly oriented, the easiest method is to download the contained project, run it in Gideros studio and then take a look at main.lua. The simplicity of the code in main.lua makes it rather self explanatory.
 
 # Currently supported components:
+* [Rounded Buttons](#rounded_buttons)
+* [Button Grid](#button_grid)
+* [View Manager](#view_manager)
 
-## Rounded buttons
+## <a name="rounded_buttons"></a> Rounded buttons
 Rbutton is a configurable rounded-corners button that does not require a bitmap. The optimal font size for the button is automatically set according to the given button dimensions. 
 
 usage:
@@ -34,7 +37,7 @@ where:
   + focus_text_color - the color of the button's text when button is clicked
 
 
-## Button grid
+## <a name="button_grid"></a>Button grid
 ButtonGrid makes use of RButton.
 
 Example:
@@ -74,7 +77,7 @@ grid.setHandler( onSelected )
 grid.render(stage)
 ```
 
-## ViewManager
+## <a name="view_manager"></a>ViewManager
 
 ViewManager provides a simple way to manage the logic of the different screens that make up your application.
 

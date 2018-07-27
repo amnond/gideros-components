@@ -13,12 +13,14 @@ local function onView1Clicked(choice)
     view2.leave("view1", {fromView="view2"})
 end
 
----------------------------
---  Override callbacks
+-------------------------------------------
+-- Override callbacks
 
+--[[
 function view2.onLeave()
     print("Leaving view2")
 end
+]]
 
 function view2.onStart(vstage, params)
     print('view2.onStart '..table_dumps(params))

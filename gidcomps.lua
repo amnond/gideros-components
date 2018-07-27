@@ -344,34 +344,30 @@ function ViewManager()
     end
     
     local private = {}
-    local public = {}       -- interface seen by creators of ViewManager
+    local public = {}   -- interface seen by creators of ViewManager
     local views = {}
     
     private.leave = function(from, whereTo, params)
-        vfrom = views[from]
-        vto   = views[whereTo]
-        
-        local onLeave = vfrom.view.onLeave
-        if type(onLeave) == "function" then
-            onLeave()
-        else
-            print( "view "..from.." did not define onLeave function")
-        end
-        
+        vfrom = views[from]        
+        vfrom.view.onLeave()        
         stage:removeChild(vfrom.vstage)
+
+        vto = views[whereTo]
         stage:addChild(vto.vstage)
-        
-        local onStart = vto.view.onStart
-        if type(onStart) == "function" then
-            onStart(vto.vstage, params)
-        else
-            print( "Error: view "..whereTo.." did not define onStart function")
-        end
+        vto.view.onStart(vto.vstage, params)
     end
     
     private.View = function(name)
-        local i_view = {}
+        local i_view = {} -- interface seen by users of View
+
+        i_view.onStart = function()
+            print( "Error: view "..name.." did not define onStart function")
+        end
         
+        i_view.onLeave = function()
+            print( "view "..name.." did not define onLeave function")
+        end
+
         i_view.leave = function(whereTo, params)
             private.leave(name, whereTo, params)
         end

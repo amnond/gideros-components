@@ -60,17 +60,17 @@ local grid = ButtonGrid(appwidth, appheight, 3, 1, 0.10)
 grid.setBtnParams({font_file = 'Vera.ttf'})
 
 -- Define callback function when one of the buttons in the grid is selected
-function onSelected(choice)
-	print( choice.row, choice.col, choice.text)
+local function onSelected(choice)
+    print( choice.row, choice.col, choice.text)
 end
 
 -- Add the following buttons. The optimal unified font size for all 
 -- the buttons is calculated when the button grid is rendered
-grid.addButton("Hello", 1, 1)
-grid.addButton("World", 2, 1)
-grid.addButton("How are you?", 3, 1)
+grid.addButton(1, 1, "Hello")
+grid.addButton(2, 1, "World")
+grid.addButton(3, 1, "How are you?")
 
--- Set the button grid callback handler
+-- Set the button grid generic callback handler
 grid.setHandler( onSelected )
 
 -- Render the button grid on the stage

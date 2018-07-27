@@ -290,7 +290,8 @@ function ButtonGrid(width, height, rows, cols, padding)
         handler = func
     end
     
-    public.addButton = function(text, row, col)
+    public.addButton = function(row, col, text, btnCallback)
+        btnCallback = btnCallback or priv.btnEvtHandler
         if row > #grid then
             return false
         end
@@ -305,7 +306,7 @@ function ButtonGrid(width, height, rows, cols, padding)
         local y = (row-1) * dy + dy/2
 
         local btn = RButton(text, x, y, dx-padding*dx, dy-padding*dy, btn_params)
-        btn.setHandler(priv.btnEvtHandler, {text=text, row=row, col=col})
+        btn.setHandler(btnCallback, {text=text, row=row, col=col})
         table.insert(buttons, btn)      
     end
 

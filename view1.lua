@@ -20,28 +20,34 @@ function view1.onLeave()
     print("Leaving view1")
 end
 
+local grid = nil
+
 function view1.onStart(vstage, params)
     print('view1.onStart '..table_dumps(params))
 
     local appwidth = application:getDeviceWidth()
     local appheight = application:getDeviceHeight()
 
-    -- Create a button grid with:
-    --     Width and height of the screen
-    --     3 rows, 1 column
-    --     cell padding of 10%
-    local grid = ButtonGrid(appwidth, appheight, 3, 1, 0.10)
+    if not grid then
+        -- first time OnStart is called.
+        grid = ButtonGrid(appwidth, appheight, 3, 1, 0.10)
 
-    grid.setBtnParams({font_file = 'Vera.ttf'})
+        -- Create a button grid with:
+        --     Width and height of the screen
+        --     3 rows, 1 column
+        --     cell padding of 10%
 
-    -- Add the following buttons. The optimal unified font size for all 
-    -- the buttons is calculated when the button grid is rendered
-    grid.addButton(1, 1, "In View1")
-    grid.addButton(2, 1, "Does nothing")
-    grid.addButton(3, 1, "To View2",  onView2Clicked)
+        grid.setBtnParams({font_file = 'Vera.ttf'})
 
-    -- Set the button grid callback handler
-    grid.setHandler( onSelected )
+        -- Add the following buttons. The optimal unified font size for all 
+        -- the buttons is calculated when the button grid is rendered
+        grid.addButton(1, 1, "In View1")
+        grid.addButton(2, 1, "Does nothing")
+        grid.addButton(3, 1, "To View2",  onView2Clicked)
+
+        -- Set the button grid callback handler
+        grid.setHandler( onSelected )
+    end
     
     grid.render(vstage)
 end

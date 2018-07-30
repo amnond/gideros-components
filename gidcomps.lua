@@ -39,18 +39,18 @@ function RButton(text, ax, ay, w, h, params)
         if not str then
             str = def
         end
-        
+
         if #str ~= 6 then
             str = def
         end
-        
+
         local res = tonumber(str, 16)
         if not res then
             res = tonumber(def, 16)
         end
         return res
     end
-    
+
     if params then
         f = f or params.roundness
         linew = linew or params.line_width
@@ -64,18 +64,18 @@ function RButton(text, ax, ay, w, h, params)
     end
 
     local fill_color = priv.str2col(fillc)
-    local line_color = priv.str2col(linec) 
+    local line_color = priv.str2col(linec)
     local text_color = priv.str2col(textc)
     local focus_fillcol = priv.str2col(focus_fillc)
     local focus_linecol = priv.str2col(focus_linec)
     local focus_textcol = priv.str2col(focus_textc)
 
-    local focus = false 
+    local focus = false
     local textfield = nil
-    
+
     local handler = nil
     local context = nil
-    
+
     local myShape = Shape.new()
 
     priv.drawButton = function(fc, lc)
@@ -126,7 +126,7 @@ function RButton(text, ax, ay, w, h, params)
     end
 
     priv.drawButton(fill_color, line_color)
-    
+
     local font_size = 8
     local padding = 0.08*w -- Make total x-padding 8 percent of width
     local padx = 0
@@ -144,32 +144,32 @@ function RButton(text, ax, ay, w, h, params)
         padx = w - linew
         pady = h - lineh
         save_lineh = lineh
-        font_size = font_size + 1       
+        font_size = font_size + 1
     end
-    -- TTFont.new exhausts open file handles before garbage is collected resulting in 
+    -- TTFont.new exhausts open file handles before garbage is collected resulting in
     -- errors of type: "Vera.ttf: No such file or directory.", a message which has little
     -- relation to the actual problem...
-    collectgarbage("collect") 
-    
+    collectgarbage("collect")
+
     font_size = font_size - 1
-    
+
     myShape.drawText = function()
         local whichcol = text_color
         if focus then
             whichcol = focus_textcol
         end
-        
+
         if textfield then
             myShape:removeChild(textfield)
         end
-    
+
         local font = TTFont.new(font_file, font_size)
         textfield = TextField.new(font, text)
         myShape:addChild(textfield)
-        textfield:setTextColor(whichcol)    
+        textfield:setTextColor(whichcol)
         textfield:setPosition(ax-w/2+padx/2, ay+save_lineh/2)
     end
-    
+
     myShape.getFontSize = function()
         return font_size
     end
@@ -182,7 +182,7 @@ function RButton(text, ax, ay, w, h, params)
         end
         myShape.drawText()
     end
-    
+
     myShape.setFontSize = function(size)
         local font = TTFont.new(font_file, size)
         local tf = TextField.new(font, text)
@@ -195,7 +195,7 @@ function RButton(text, ax, ay, w, h, params)
         padx = w - linew
         pady = h - lineh
         save_lineh = lineh
-        font_size = size        
+        font_size = size
     end
 
     myShape.setHandler = function( func, ctx )
@@ -205,7 +205,7 @@ function RButton(text, ax, ay, w, h, params)
         handler = func
         context = ctx
     end
-    
+
     function myShape:onMouseDown(event)
         if myShape:hitTestPoint(event.x, event.y) then
             focus = true
@@ -233,21 +233,21 @@ function RButton(text, ax, ay, w, h, params)
         if not focus then
             return
         end
-        
+
         if not myShape:hitTestPoint(event.x, event.y) then
             focus = false
-            myShape.updateFocusColors()         
+            myShape.updateFocusColors()
         end
         event:stopPropagation()
     end
-    
+
     myShape:addEventListener(Event.MOUSE_DOWN, myShape.onMouseDown, myShape)
     myShape:addEventListener(Event.MOUSE_MOVE, myShape.onMouseMove, myShape)
     myShape:addEventListener(Event.MOUSE_UP, myShape.onMouseUp, myShape)
-    
+
     return myShape
 end
-  
+
 -----------------------------------------------------------------------------
 function ButtonGrid(width, height, rows, cols, padding)
     local priv = {}
@@ -255,10 +255,10 @@ function ButtonGrid(width, height, rows, cols, padding)
 
     local grid = {}
     local buttons = {}
-    
+
     local handler = nil
     local font_file = nil
-    
+
     priv.makegrid = function(rows, cols)
         for i = 1, rows do
             grid[i] = {}
@@ -268,9 +268,9 @@ function ButtonGrid(width, height, rows, cols, padding)
             end
         end
     end
-    
+
     priv.makegrid(rows, cols)
- 
+
     priv.btnEvtHandler = function(context)
         if not handler then
             print("no handler set for button event")
@@ -282,15 +282,40 @@ function ButtonGrid(width, height, rows, cols, padding)
     public.setBtnParams = function( params )
         btn_params = params
     end
-    
+
     public.setHandler = function( func )
         if type(func) ~= "function" then
             return
         end
         handler = func
     end
-    
-    public.addButton = function(row, col, text, btnCallback)
+
+    -- Add a button to the grid
+    -- row: Which row in the grid the button should be placed in
+    -- col: Which column in the grid the button should be placed in
+    -- text: Text of the button
+    -- btnCallback: function to be called when thi specific button is clicked
+    -- params (optional): A table of parameters
+    --     btn_params: A table of button parameters. Same structure as that passed to RButton
+    --     disp_params: Position parameters
+    --         xspan: how many cells should button cover on x axis (default is 1)
+    --         yspan: how many cells should button cover on y axis (default is 1)
+    --         keep_max_font: Do not attempt to sync this sprite's font size with others on the grid
+    public.addButton = function(row, col, text, btnCallback, params)
+        local xspan = 1
+        local yspan = 1
+        local keep_max_font = false
+
+        if params then
+            btn_params = params.btn_params or btn_params
+            if params.disp_params then
+			    local dp = params.disp_params
+                xspan = dp.xspan or xspan
+                yspan = dp.yspan or yspan
+				keep_max_font = keep_max_font or dp.keep_max_font
+            end
+        end
+
         btnCallback = btnCallback or priv.btnEvtHandler
         if row > #grid then
             return false
@@ -300,17 +325,28 @@ function ButtonGrid(width, height, rows, cols, padding)
             return false
         end
 
-        local dx = width / cols
-        local dy = height / rows
-        local x = (col-1) * dx + dx/2
-        local y = (row-1) * dy + dy/2
+        local xleft = cols - col + 1
+        local yleft = rows - row + 1
+        if xspan < 1 then xspan = 1 end
+        if yspan < 1 then yspan = 1 end
+        if xspan > xleft then xspan = xleft end
+        if yspan > yleft then yspan = yleft end
 
-        local btn = RButton(text, x, y, dx-padding*dx, dy-padding*dy, btn_params)
+        local cellx = width / cols
+        local celly = height / rows
+        local btn_w = xspan * cellx
+        local btn_h = yspan * celly
+        local x = (col-1) * cellx + btn_w/2
+        local y = (row-1) * celly + btn_h/2
+
+        local btn = RButton(text, x, y, btn_w-padding*cellx, btn_h-padding*celly, btn_params)
+        btn.keep_max_font = keep_max_font
         btn.setHandler(btnCallback, {text=text, row=row, col=col})
-        table.insert(buttons, btn)      
+        table.insert(buttons, btn)
     end
 
     public.render = function(parent)
+        priv.parent = parent
         if #buttons < 1 then
             return
         end
@@ -320,19 +356,27 @@ function ButtonGrid(width, height, rows, cols, padding)
             local fs = btn.getFontSize()
             if max > fs then
                 max = fs
-            end            
+            end
         end
-        
+
         for i=1,#buttons do
             local btn = buttons[i]
-            btn.setFontSize(max)
+            if not btn.keep_max_font then
+                btn.setFontSize(max)
+            end
             parent:addChild(btn)
             btn.drawText()
         end
-        
     end
 
-    return public   
+    public.clear = function()
+        for i=1,#buttons do
+            priv.parent:removeChild(buttons[i])
+            buttons[i] = nil
+        end
+    end
+
+    return public
 end
 
 -----------------------------------------------------------------------------
@@ -342,28 +386,28 @@ function ViewManager()
     if g_view_manager then
         return g_view_manager
     end
-    
+
     local private = {}
     local public = {}   -- interface seen by creators of ViewManager
     local views = {}
-    
+
     private.leave = function(from, whereTo, params)
-        vfrom = views[from]        
-        vfrom.view.onLeave()        
+        vfrom = views[from]
+        vfrom.view.onLeave()
         stage:removeChild(vfrom.vstage)
 
         vto = views[whereTo]
         stage:addChild(vto.vstage)
         vto.view.onStart(vto.vstage, params)
     end
-    
+
     private.View = function(name)
         local i_view = {} -- interface seen by users of View
 
         i_view.onStart = function()
             print( "Error: view "..name.." did not define onStart function")
         end
-        
+
         i_view.onLeave = function()
             print( "view "..name.." did not define onLeave function")
         end
@@ -371,7 +415,7 @@ function ViewManager()
         i_view.leave = function(whereTo, params)
             private.leave(name, whereTo, params)
         end
-        
+
         return i_view
     end
 
@@ -380,7 +424,7 @@ function ViewManager()
         views[viewname] = {view = view, vstage = Sprite.new()}
         return view
     end
-    
+
     public.start = function(viewname)
         local viewinfo = views[viewname]
         if viewinfo == nil then
@@ -391,7 +435,7 @@ function ViewManager()
         viewinfo.view.onStart(viewinfo.vstage, nil)
     end
 
-    g_view_manager = public        
+    g_view_manager = public
     return public
 end
 

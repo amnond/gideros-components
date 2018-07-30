@@ -40,11 +40,7 @@ where:
 ## <a name="button_grid"></a>Button grid
 ButtonGrid makes use of RButton.
 
-Example:
-
-![screen shot](https://nocurve.com/content/video.gif "Example")
-
-To keep things simple, let's just let the code which does the above do the talking:
+Example: The folloging code
 
 ```lua
 require "gidcomps"
@@ -76,6 +72,28 @@ grid.setHandler( onSelected )
 -- Render the button grid on the stage
 grid.render(stage)
 ```
+will produce:
+
+![screen shot](https://nocurve.com/content/video.gif "Example")
+
+
+### GridManager methods ###
+
+* ```clear()``` - clears all the existing GridManager objects that were rendered
+* ```addButton(row, col, text, btnCallback, params)``` - Add a button to the grid
+  + row: Which row in the grid the button should be placed in
+  + col: Which column in the grid the button should be placed in
+  + text: Text of the button
+  + btnCallback: function to be called when thi specific button is clicked
+  + params (optional): A table of parameters:
+    * btn_params: A table of button parameters. Same structure as that passed to RButton
+    * disp_params: Position parameters
+    * xspan: how many cells should button cover on x axis (default is 1)
+    * yspan: how many cells should button cover on y axis (default is 1)
+    * keep_max_font: Do not attempt to sync this sprite's font size with others on the grid
+* ```setBtnParams(params)``` - set the display options for all buttons in this grid. params is the same as for RButton
+* ```setHandler(func)``` - set a generic button click handler for buttons who have not been associated with their specific callback function when clicked. All callback functions are called with a parameter of a table containing the row, columns and text of the button clicked.
+* ```render(parent)``` - Render the grid and its components on the sprite/stage given in parent parameter
 
 ## <a name="view_manager"></a>ViewManager
 

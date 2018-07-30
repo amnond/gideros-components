@@ -3,7 +3,6 @@ This code is MIT licensed, see https://opensource.org/licenses/MIT
 Copyright 2018 Amnon David
 ]]
 
------------------------------------------------------------------------------
 function table_dumps(tbl)
     if not tbl then
         return 'nil'
@@ -12,9 +11,9 @@ function table_dumps(tbl)
     for k, v in pairs(tbl) do
         str = str .. k .. ": "
         if type(v) == "table" then
-            str = str .. dumpst(v)
+            str = str .. table_dumps(v)
         else
-            str = str ..(v)
+            str = str .. tostring(v)
         end
         str = str .. ' '
     end
@@ -52,14 +51,14 @@ function RButton(text, ax, ay, w, h, params)
     end
 
     if params then
-        f = f or params.roundness
-        linew = linew or params.line_width
-        fillc = fillc or params.fill_color
-        linec = linec or params.line_color
-        textc = textc or params.text_color
-        focus_fillc = focus_fillc or params.focus_fill_color
-        focus_linec = focus_linec or params.focus_line_color
-        focus_textc = focus_textc or params.focus_text_color
+        f = params.roundness or f
+        linew = params.line_width or linew 
+        fillc = params.fill_color or fillc 
+        linec = params.line_color or linec 
+        textc = params.text_color or textc 
+        focus_fillc = params.focus_fill_color or focus_fillc
+        focus_linec = params.focus_line_color or focus_linec
+        focus_textc = params.focus_text_color or focus_textc
         font_file = params.font_file
     end
 
@@ -290,6 +289,17 @@ function ButtonGrid(width, height, rows, cols, padding)
         handler = func
     end
 
+    public.addText = function(row, col, text, params)
+        params = params or {}
+        params.btn_params = params.btn_params or {}
+        bparams = params.btn_params
+        bparams.fill_color = bparams.fill_color or 'ffffff'
+        bparams.line_color = bparams.line_color or 'ffffff'
+        bparams.text_color = bparams.text_color or '000000'
+        bparams.font_file = 'Vera.ttf'
+        public.addButton(row, col, text, nil, params)
+    end
+
     -- Add a button to the grid
     -- row: Which row in the grid the button should be placed in
     -- col: Which column in the grid the button should be placed in
@@ -302,12 +312,15 @@ function ButtonGrid(width, height, rows, cols, padding)
     --         yspan: how many cells should button cover on y axis (default is 1)
     --         keep_max_font: Do not attempt to sync this sprite's font size with others on the grid
     public.addButton = function(row, col, text, btnCallback, params)
+        print(text, tostring(btnCallback))
+
         local xspan = 1
         local yspan = 1
         local keep_max_font = false
 
+        local bparams = btn_params
         if params then
-            btn_params = params.btn_params or btn_params
+            bparams = params.btn_params or btn_params
             if params.disp_params then
 			    local dp = params.disp_params
                 xspan = dp.xspan or xspan
@@ -339,7 +352,7 @@ function ButtonGrid(width, height, rows, cols, padding)
         local x = (col-1) * cellx + btn_w/2
         local y = (row-1) * celly + btn_h/2
 
-        local btn = RButton(text, x, y, btn_w-padding*cellx, btn_h-padding*celly, btn_params)
+        local btn = RButton(text, x, y, btn_w-padding*cellx, btn_h-padding*celly, bparams)
         btn.keep_max_font = keep_max_font
         btn.setHandler(btnCallback, {text=text, row=row, col=col})
         table.insert(buttons, btn)
@@ -393,7 +406,7 @@ function ViewManager()
 
     private.leave = function(from, whereTo, params)
         vfrom = views[from]
-        vfrom.view.onLeave()
+        vfrom.view.onLeave(vfrom.vstage)
         stage:removeChild(vfrom.vstage)
 
         vto = views[whereTo]

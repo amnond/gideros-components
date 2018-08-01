@@ -2,6 +2,7 @@
 This code is MIT licensed, see https://opensource.org/licenses/MIT
 Copyright 2018 Amnon David
 ]]
+-----------------------------------------------------------------------------
 
 function dumpTable(table, depth)
     depth = depth or 1
@@ -18,7 +19,27 @@ function dumpTable(table, depth)
     end
 end
 
------------------------------------------------------------------------------
+local function FontCache()
+    local public = {}
+    local font_cache = {}
+
+    public.getFont = function(font_filename, font_size)
+        if not font_cache[font_filename] then
+            font_cache[font_filename] = {}
+        end
+        if not font_cache[font_filename][font_size] then
+            font_cache[font_filename][font_size] = TTFont.new(font_filename, font_size)
+        end
+        return font_cache[font_filename][font_size]
+    end
+
+    return public
+end
+
+if not g_fontcache then
+    g_fontcache = FontCache()
+end
+
 function RButton(text, ax, ay, w, h, params)
     local f = 0.42
     local linew = 2
@@ -31,7 +52,7 @@ function RButton(text, ax, ay, w, h, params)
     local font_file = nil
     local priv = {}
 
-       priv.str2col = function(str)
+    priv.str2col = function(str)
         local def = '000000'
         if not str then
             str = def
@@ -124,14 +145,15 @@ function RButton(text, ax, ay, w, h, params)
 
     priv.drawButton(fill_color, line_color)
 
-    local font_size = 8
+    local font_size = nil
     local padding = 0.08*w -- Make total x-padding 8 percent of width
     local padx = 0
     local pady = 0
     local save_lineh = 0
 
-    while font_size < 60 do
-        local font = TTFont.new(font_file, font_size)
+    for size=8,60 do
+        font_size = size
+        local font = g_fontcache.getFont(font_file, font_size)
         local tf = TextField.new(font, text)
         local lineh = tf:getHeight()
         local linew = tf:getWidth()
@@ -141,7 +163,6 @@ function RButton(text, ax, ay, w, h, params)
         padx = w - linew
         pady = h - lineh
         save_lineh = lineh
-        font_size = font_size + 1
     end
     -- TTFont.new exhausts open file handles before garbage is collected resulting in
     -- errors of type: "Vera.ttf: No such file or directory.", a message which has little
@@ -160,7 +181,7 @@ function RButton(text, ax, ay, w, h, params)
             myShape:removeChild(textfield)
         end
 
-        local font = TTFont.new(font_file, font_size)
+        local font = g_fontcache.getFont(font_file, font_size)
         textfield = TextField.new(font, text)
         myShape:addChild(textfield)
         textfield:setTextColor(whichcol)
@@ -181,7 +202,7 @@ function RButton(text, ax, ay, w, h, params)
     end
 
     myShape.setFontSize = function(size)
-        local font = TTFont.new(font_file, size)
+        local font = g_fontcache.getFont(font_file, size)
         local tf = TextField.new(font, text)
         local lineh = tf:getHeight()
         local linew = tf:getWidth()
@@ -366,7 +387,6 @@ function ButtonGrid(width, height, rows, cols, padding)
         -- Calculate highest common denominator font for each group
         local optfont_group = buttons[1].optfont_group
         local max_for_group = {}
-
         max_for_group[optfont_group] = buttons[1].getFontSize()
         for i=2,#buttons do
             local btn = buttons[i]

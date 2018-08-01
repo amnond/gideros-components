@@ -5,7 +5,7 @@ M.init = function(view_mngr)
 
     -- Callback function when one of the buttons in the grid is selected
     local function onSelected(choice)
-        print( table_dumps(choice) )
+        dumpTable(choice)
     end
 
     --  Specific callback function for view2
@@ -21,7 +21,8 @@ M.init = function(view_mngr)
     local grid = nil
 
     function view1.onStart(vstage, params)
-        print('view1.onStart '..table_dumps(params))
+        print('view1.onStart ')
+		dumpTable(params)
 
         local appwidth = application:getDeviceWidth()
         local appheight = application:getDeviceHeight()

@@ -3,21 +3,19 @@ This code is MIT licensed, see https://opensource.org/licenses/MIT
 Copyright 2018 Amnon David
 ]]
 
-function table_dumps(tbl)
-    if not tbl then
+function dumpTable(table, depth)
+    depth = depth or 1
+    if not table then
         return 'nil'
-    end
-    local str = ''
-    for k, v in pairs(tbl) do
-        str = str .. k .. ": "
-        if type(v) == "table" then
-            str = str .. table_dumps(v)
+    end 
+    for k,v in pairs(table) do
+        if (type(v) == "table") then
+            print(string.rep("  ", depth)..k..":")
+            dumpTable(v, depth+1)
         else
-            str = str .. tostring(v)
+            print(string.rep("  ", depth)..k..": ",v)
         end
-        str = str .. ' '
     end
-    return str
 end
 
 -----------------------------------------------------------------------------
@@ -296,6 +294,9 @@ function ButtonGrid(width, height, rows, cols, padding)
         bparams.fill_color = bparams.fill_color or 'ffffff'
         bparams.line_color = bparams.line_color or 'ffffff'
         bparams.text_color = bparams.text_color or '000000'
+        bparams.focus_fill_color = bparams.fill_color
+        bparams.focus_line_color = bparams.line_color
+        bparams.focus_text_color = bparams.text_color
         bparams.font_file = 'Vera.ttf'
         public.addButton(row, col, text, nil, params)
     end
@@ -310,22 +311,20 @@ function ButtonGrid(width, height, rows, cols, padding)
     --     disp_params: Position parameters
     --         xspan: how many cells should button cover on x axis (default is 1)
     --         yspan: how many cells should button cover on y axis (default is 1)
-    --         keep_max_font: Do not attempt to sync this sprite's font size with others on the grid
+    --         optfont_group: a string identifying the group of fonts this texts size should sync with 
     public.addButton = function(row, col, text, btnCallback, params)
-        print(text, tostring(btnCallback))
-
         local xspan = 1
         local yspan = 1
-        local keep_max_font = false
+        local optfont_group = '___'
 
         local bparams = btn_params
         if params then
             bparams = params.btn_params or btn_params
             if params.disp_params then
-			    local dp = params.disp_params
+                local dp = params.disp_params
                 xspan = dp.xspan or xspan
                 yspan = dp.yspan or yspan
-				keep_max_font = keep_max_font or dp.keep_max_font
+                optfont_group =  dp.optfont_group or optfont_group
             end
         end
 
@@ -353,7 +352,7 @@ function ButtonGrid(width, height, rows, cols, padding)
         local y = (row-1) * celly + btn_h/2
 
         local btn = RButton(text, x, y, btn_w-padding*cellx, btn_h-padding*celly, bparams)
-        btn.keep_max_font = keep_max_font
+        btn.optfont_group = optfont_group
         btn.setHandler(btnCallback, {text=text, row=row, col=col})
         table.insert(buttons, btn)
     end
@@ -363,20 +362,27 @@ function ButtonGrid(width, height, rows, cols, padding)
         if #buttons < 1 then
             return
         end
-        local max = buttons[1].getFontSize()
+
+        -- Calculate highest common denominator font for each group
+        local optfont_group = buttons[1].optfont_group
+        local max_for_group = {}
+
+        max_for_group[optfont_group] = buttons[1].getFontSize()
         for i=2,#buttons do
             local btn = buttons[i]
             local fs = btn.getFontSize()
-            if max > fs then
-                max = fs
+            optfont_group = btn.optfont_group
+            if not max_for_group[optfont_group] then
+                max_for_group[optfont_group] = fs
+            elseif max_for_group[optfont_group] > fs then
+                max_for_group[optfont_group] = fs
             end
         end
 
+        -- Set foot size of easch button according to its group's font size
         for i=1,#buttons do
             local btn = buttons[i]
-            if not btn.keep_max_font then
-                btn.setFontSize(max)
-            end
+            btn.setFontSize(max_for_group[btn.optfont_group])
             parent:addChild(btn)
             btn.drawText()
         end
@@ -448,6 +454,7 @@ function ViewManager()
         viewinfo.view.onStart(viewinfo.vstage, nil)
     end
 
+    print("creating new g_view_manager")
     g_view_manager = public
     return public
 end

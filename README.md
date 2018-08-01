@@ -90,7 +90,7 @@ will produce:
     * disp_params: Position parameters
     * xspan: how many cells should button cover on x axis (default is 1)
     * yspan: how many cells should button cover on y axis (default is 1)
-    * keep_max_font: Do not attempt to sync this sprite's font size with others on the grid
+    * optfont_group: an identifier string that associates the text to a group that shares the same font size. This size will be synced to the smallest font of all the optimal font sizes found for elements in the group
 * ```setBtnParams(params)``` - set the display options for all buttons in this grid. params is the same as for RButton
 * ```setHandler(func)``` - set a generic button click handler for buttons who have not been associated with their specific callback function when clicked. All callback functions are called with a parameter of a table containing the row, columns and text of the button clicked.
 * ```render(parent)``` - Render the grid and its components on the sprite/stage given in parent parameter

@@ -6,7 +6,7 @@ M.init = function(view_mngr)
 
 -- Callback function when one of the buttons in the grid is selected
     local function onSelected(choice)
-        print( table_dumps(choice) )
+        dumpTable(choice) 
     end
 
     -- Specific callback function for view1 button
@@ -39,7 +39,8 @@ M.init = function(view_mngr)
         dynspan = dynspan % 3
         dynspan = dynspan + 1
 
-        print('view3.onStart '..table_dumps(params))
+        print('view3.onStart ')
+		dumpTable(params)
 
         local appwidth = application:getDeviceWidth()
         local appheight = application:getDeviceHeight()

@@ -35,6 +35,7 @@ where:
   + focus_line_color - the color of the button's border when button is clicked
   + focus_fill_color - the background color of the button when button is clicked
   + focus_text_color - the color of the button's text when button is clicked
+  + font_size - the size of the font to be used for this button. If this is specified then automatic font size setting will be disabled for this button. Besides enabling more control over the size of the font, this can also come in handy as a workaround to a bug in Gideros where the font resources are not freed, causing an 'invalid font size' error in some devices after creating TTFont objects for the automatic font size detection.
 
 
 ## <a name="button_grid"></a>Button grid

@@ -8,7 +8,7 @@ function dumpTable(table, depth)
     depth = depth or 1
     if not table then
         return 'nil'
-    end 
+    end
     for k,v in pairs(table) do
         if (type(v) == "table") then
             print(string.rep("  ", depth)..k..":")
@@ -22,6 +22,7 @@ end
 local function FontCache()
     local public = {}
     local font_cache = {}
+    local font_cache_size = 0
 
     public.getFont = function(font_filename, font_size)
         if not font_cache[font_filename] then
@@ -29,6 +30,8 @@ local function FontCache()
         end
         if not font_cache[font_filename][font_size] then
             font_cache[font_filename][font_size] = TTFont.new(font_filename, font_size)
+            font_cache_size = font_cache_size + 1
+            print("font_cache_size="..font_cache_size)
         end
         return font_cache[font_filename][font_size]
     end
@@ -51,6 +54,8 @@ function RButton(text, ax, ay, w, h, params)
     local focus_textc = 'aaffaa'
     local font_file = nil
     local priv = {}
+    local text_offset_x = 0
+    local text_offset_y = 0
 
     priv.str2col = function(str)
         local def = '000000'
@@ -71,14 +76,16 @@ function RButton(text, ax, ay, w, h, params)
 
     if params then
         f = params.roundness or f
-        linew = params.line_width or linew 
-        fillc = params.fill_color or fillc 
-        linec = params.line_color or linec 
-        textc = params.text_color or textc 
+        linew = params.line_width or linew
+        fillc = params.fill_color or fillc
+        linec = params.line_color or linec
+        textc = params.text_color or textc
         focus_fillc = params.focus_fill_color or focus_fillc
         focus_linec = params.focus_line_color or focus_linec
         focus_textc = params.focus_text_color or focus_textc
         font_file = params.font_file
+        text_offset_x = params.text_offset_x or 0
+        text_offset_y = params.text_offset_y or 0
     end
 
     local fill_color = priv.str2col(fillc)
@@ -94,6 +101,7 @@ function RButton(text, ax, ay, w, h, params)
     local handler = nil
     local context = nil
 
+    local fixedfont = false
     local myShape = Shape.new()
 
     priv.drawButton = function(fc, lc)
@@ -151,25 +159,36 @@ function RButton(text, ax, ay, w, h, params)
     local pady = 0
     local save_lineh = 0
 
-    for size=8,60 do
-        font_size = size
+    if params.font_size then
+        fixedfont = true
+        font_size = params.font_size
         local font = g_fontcache.getFont(font_file, font_size)
         local tf = TextField.new(font, text)
         local lineh = tf:getHeight()
         local linew = tf:getWidth()
-        if lineh > h-padding or linew > w-padding then
-            break
-        end
         padx = w - linew
         pady = h - lineh
         save_lineh = lineh
+    else
+        for size=8,60 do
+            font_size = size
+            local font = g_fontcache.getFont(font_file, font_size)
+            local tf = TextField.new(font, text)
+            local lineh = tf:getHeight()
+            local linew = tf:getWidth()
+            if lineh > h-padding or linew > w-padding then
+                break
+            end
+            padx = w - linew
+            pady = h - lineh
+            save_lineh = lineh
+        end
+        -- TTFont.new exhausts open file handles before garbage is collected resulting in
+        -- errors of type: "Vera.ttf: No such file or directory.", a message which has little
+        -- relation to the actual problem...
+        collectgarbage("collect")
+        font_size = font_size - 1
     end
-    -- TTFont.new exhausts open file handles before garbage is collected resulting in
-    -- errors of type: "Vera.ttf: No such file or directory.", a message which has little
-    -- relation to the actual problem...
-    collectgarbage("collect")
-
-    font_size = font_size - 1
 
     myShape.drawText = function()
         local whichcol = text_color
@@ -185,11 +204,18 @@ function RButton(text, ax, ay, w, h, params)
         textfield = TextField.new(font, text)
         myShape:addChild(textfield)
         textfield:setTextColor(whichcol)
-        textfield:setPosition(ax-w/2+padx/2, ay+save_lineh/2)
+        local textposx = ax - w/2 + padx/2 + text_offset_x
+        local textposy = ay + save_lineh/2 + text_offset_y
+        textfield:setPosition(textposx, textposy)
+		--textfield:setLayout({flags = FontBase.TLF_LEFT})
     end
 
     myShape.getFontSize = function()
         return font_size
+    end
+
+    myShape.getText = function()
+        return text
     end
 
     myShape.updateFocusColors = function()
@@ -202,6 +228,9 @@ function RButton(text, ax, ay, w, h, params)
     end
 
     myShape.setFontSize = function(size)
+        if fixedfont then
+            return
+        end
         local font = g_fontcache.getFont(font_file, size)
         local tf = TextField.new(font, text)
         local lineh = tf:getHeight()
@@ -332,7 +361,7 @@ function ButtonGrid(width, height, rows, cols, padding)
     --     disp_params: Position parameters
     --         xspan: how many cells should button cover on x axis (default is 1)
     --         yspan: how many cells should button cover on y axis (default is 1)
-    --         optfont_group: a string identifying the group of fonts this texts size should sync with 
+    --         optfont_group: a string identifying the group of fonts this texts size should sync with
     public.addButton = function(row, col, text, btnCallback, params)
         local xspan = 1
         local yspan = 1
@@ -340,7 +369,15 @@ function ButtonGrid(width, height, rows, cols, padding)
 
         local bparams = btn_params
         if params then
-            bparams = params.btn_params or btn_params
+            bparams = params.btn_params or {}
+            -- save original properties that were not set
+            if btn_params then
+                for k,v in pairs(btn_params) do
+                    if not bparams[k] then
+                        bparams[k] = v
+                    end
+                end
+            end
             if params.disp_params then
                 local dp = params.disp_params
                 xspan = dp.xspan or xspan
@@ -384,7 +421,6 @@ function ButtonGrid(width, height, rows, cols, padding)
             return
         end
 
-        -- Calculate highest common denominator font for each group
         local optfont_group = buttons[1].optfont_group
         local max_for_group = {}
         max_for_group[optfont_group] = buttons[1].getFontSize()
@@ -399,12 +435,12 @@ function ButtonGrid(width, height, rows, cols, padding)
             end
         end
 
-        -- Set foot size of easch button according to its group's font size
         for i=1,#buttons do
             local btn = buttons[i]
             btn.setFontSize(max_for_group[btn.optfont_group])
             parent:addChild(btn)
             btn.drawText()
+            print('text:"'..btn.getText()..'" fontsize:'..btn.getFontSize())
         end
     end
 
@@ -436,6 +472,10 @@ function ViewManager()
         stage:removeChild(vfrom.vstage)
 
         vto = views[whereTo]
+		if not vto then
+		    print( "Error: "..whereTo.." view is nil. Check if added via addView." )
+			return
+		end
         stage:addChild(vto.vstage)
         vto.view.onStart(vto.vstage, params)
     end
